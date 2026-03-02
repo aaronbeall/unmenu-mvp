@@ -1,0 +1,71 @@
+{
+  "expo": {
+    "name": "UnMenu",
+    "slug": "unmenu",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.unmenu.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "UnMenu needs camera access to scan menus",
+        "NSPhotoLibraryUsageDescription": "UnMenu needs photo library access to select menu images",
+        "NSLocationWhenInUseUsageDescription": "UnMenu uses your location to show nearby restaurant scans"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.unmenu.app",
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow UnMenu to access your camera to scan menus",
+          "microphonePermission": "Allow UnMenu to access your microphone"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow UnMenu to use your location to show nearby restaurant scans",
+          "isIosBackgroundLocationEnabled": false
+        }
+      ]
+    ],
+    "scheme": "unmenu",
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "your-project-id"
+      }
+    }
+  }
+}
