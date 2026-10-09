@@ -1,48 +1,53 @@
-import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
 import { supabase } from '../supabase';
+import * as WebBrowser from 'expo-web-browser';
+import { makeRedirectUri } from 'expo-auth-session';
 
 WebBrowser.maybeCompleteAuthSession();
 
-const googleWebClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
-const googleIosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
-const googleAndroidClientId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
-
 export function useGoogleAuth() {
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    webClientId: googleWebClientId,
-    iosClientId: googleIosClientId,
-    androidClientId: googleAndroidClientId,
-  });
 
   const signInWithGoogle = async () => {
     try {
-      const result = await promptAsync();
-      
-      if (result.type === 'success') {
-        const { id_token } = result.params;
+      // Use makeRedirectUri to get the proper redirect URL
+      const redirectUrl = makeRedirectUri({
+        scheme: 'unmenu',
+      });
+
+      console.log('Redirect URL:', redirectUrl);
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          skipBrowserRedirect: false,
+        },
+      });
+
+      if (error) throw error;
+
+      console.log('OAuth URL:', data?.url);
+      console.log('Opening browser...');
+
+      if (data?.url) {
+        // Use openAuthSessionAsync with createTask: false to prevent hanging
+        const result = await WebBrowser.openAuthSessionAsync(
+          data.url,
+          redirectUrl,
+          {
+            createTask: false,
+          }
+        );
         
-        const { data, error } = await supabase.auth.signInWithIdToken({
-          provider: 'google',
-          token: id_token,
-        });
-
-        if (error) throw error;
-
-        if (data.user) {
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .upsert({
-              id: data.user.id,
-              email: data.user.email!,
-              full_name: data.user.user_metadata.full_name,
-              avatar_url: data.user.user_metadata.avatar_url,
-            });
-
-          if (profileError) console.error('Error creating profile:', profileError);
+        console.log('Browser result type:', result.type);
+        
+        if (result.type === 'success' && result.url) {
+          console.log('Success! Redirect URL received');
+          // The URL listener in _layout.tsx will handle the session
+        } else if (result.type === 'dismiss') {
+          console.log('Browser dismissed - checking for session...');
+          // Sometimes the session is set even if browser is dismissed
+          // The URL listener should have caught it
         }
-
-        return data;
       }
     } catch (error) {
       console.error('Google sign in error:', error);
@@ -52,6 +57,5 @@ export function useGoogleAuth() {
 
   return {
     signInWithGoogle,
-    request,
   };
 }
